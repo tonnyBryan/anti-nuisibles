@@ -59,7 +59,9 @@ export default function DevisPage() {
         message: '',
     })
     const [errors, setErrors] = useState<FormErrors>({})
-    const [submitted, setSubmitted] = useState(false)
+    const [submitted, setSubmitted] = useState<string | null>(null)
+    const [loading, setLoading] = useState(false)
+    const [apiError, setApiError] = useState<string | null>(null)
 
     const validateStep = (currentStep: number): boolean => {
         const newErrors: FormErrors = {}
@@ -113,9 +115,34 @@ export default function DevisPage() {
         }))
     }
 
-    const handleSubmit = () => {
-        if (validateStep(3)) {
-            setSubmitted(true)
+    const handleSubmit = async () => {
+        if (!validateStep(3)) return
+
+        setLoading(true)
+        setApiError(null)
+
+        try {
+            const response = await fetch('/api/devis', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...formData,
+                    surface: Number(formData.surface),
+                }),
+            })
+
+            const result = await response.json()
+
+            if (!response.ok) {
+                setApiError(result.error ?? 'Une erreur est survenue.')
+                return
+            }
+
+            setSubmitted(result.data.id)
+        } catch {
+            setApiError('Erreur réseau. Veuillez réessayer.')
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -135,8 +162,27 @@ export default function DevisPage() {
                     <p className="text-stone-400 mb-8">Notre équipe vous contactera dans les plus brefs délais.</p>
                     <div className="bg-stone-900 border border-stone-800 rounded-xl p-4">
                         <p className="text-stone-500 text-sm">Référence de votre demande</p>
-                        <p className="text-amber-400 font-mono text-lg font-bold mt-1">REF-XXXXXX</p>
+                        <p className="text-amber-400 font-mono text-lg font-bold mt-1">{submitted}</p>
                     </div>
+                    <button
+                        onClick={() => {
+                            setSubmitted(null)
+                            setStep(1)
+                            setFormData({
+                                etablissement: '',
+                                surface: '',
+                                nuisibles: [],
+                                urgence: '',
+                                nom: '',
+                                email: '',
+                                telephone: '',
+                                message: '',
+                            })
+                        }}
+                        className="mt-6 text-stone-400 hover:text-white text-sm underline transition-colors"
+                    >
+                        Faire une nouvelle demande
+                    </button>
                 </div>
             </div>
         )
@@ -472,29 +518,47 @@ export default function DevisPage() {
                         </button>
                     ) : <div />}
 
-                    {step < 3 ? (
-                        <button
-                            type="button"
-                            onClick={handleNext}
-                            className="flex items-center gap-2 px-8 py-3 bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold rounded-xl transition-all duration-200"
-                        >
-                            Continuer
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={handleSubmit}
-                            className="flex items-center gap-2 px-8 py-3 bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold rounded-xl transition-all duration-200"
-                        >
-                            Envoyer ma demande
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                        </button>
-                    )}
+                    <div className="flex flex-col items-end gap-2">
+                        {apiError && (
+                            <p className="text-red-400 text-sm" role="alert">{apiError}</p>
+                        )}
+                        {step < 3 ? (
+                            <button
+                                type="button"
+                                onClick={handleNext}
+                                className="flex items-center gap-2 px-8 py-3 bg-amber-500 hover:bg-amber-400 text-stone-950 font-semibold rounded-xl transition-all duration-200"
+                            >
+                                Continuer
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handleSubmit}
+                                disabled={loading}
+                                className="flex items-center gap-2 px-8 py-3 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-stone-950 font-semibold rounded-xl transition-all duration-200"
+                            >
+                                {loading ? (
+                                    <>
+                                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                                        </svg>
+                                        Envoi en cours...
+                                    </>
+                                ) : (
+                                    <>
+                                        Envoyer ma demande
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </>
+                                )}
+                            </button>
+                        )}
+                    </div>
                 </div>
             </main>
         </div>
