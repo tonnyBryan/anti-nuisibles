@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase'
-import { Devis } from '@/types'
+import { Devis, Statut } from '@/types'
 
 export async function checkRateLimit(ip: string): Promise<boolean> {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
@@ -48,4 +48,21 @@ export async function createDevis(data: Omit<Devis, 'id' | 'created_at' | 'statu
     if (error) throw error
 
     return devis.id
+}
+
+export async function getDevis(statut?: Statut | null): Promise<Devis[]> {
+    let query = supabaseAdmin
+        .from('devis')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+    if (statut) {
+        query = query.eq('statut', statut)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    return data as Devis[]
 }
