@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 
 type Etablissement = 'Restaurant' | 'Hôtel' | 'Copropriété' | 'Autre'
 type Nuisible = 'Rats' | 'Cafards' | 'Punaises de lit' | 'Frelons' | 'Autre'
@@ -191,21 +192,17 @@ export default function DevisPage() {
     return (
         <div className="min-h-screen bg-stone-950">
             {/* Header */}
-            <header className="border-b border-stone-800 bg-stone-950/80 backdrop-blur-sm sticky top-0 z-10">
-                <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
-                            <span className="text-stone-950 font-bold text-sm">AN</span>
-                        </div>
-                        <span className="text-white font-semibold" style={{ fontFamily: 'Georgia, serif' }}>
-              Anti-Nuisibles Paris
-            </span>
+            <nav className="fixed top-0 left-0 right-0 z-50 px-8 py-5 flex items-center justify-between">
+                <Link href="/" className="flex items-center gap-2">
+                    <div className="w-7 h-7 bg-amber-500 rounded-md flex items-center justify-center">
+                        <span className="text-stone-950 font-black text-xs">AN</span>
                     </div>
-                    <span className="text-stone-500 text-sm">Demande de devis gratuit</span>
-                </div>
-            </header>
+                    <span className="font-semibold text-sm tracking-wide text-white">Anti-Nuisibles Paris</span>
+                </Link>
+                <span className="text-stone-400 text-sm">Demande de devis gratuit</span>
+            </nav>
 
-            <main className="max-w-3xl mx-auto px-6 py-12">
+            <main className="max-w-3xl mx-auto px-6 py-12 pt-24">
                 {/* Progress bar */}
                 <div className="mb-10">
                     <div className="flex items-center justify-between mb-4">
