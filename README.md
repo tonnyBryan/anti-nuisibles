@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Anti-Nuisibles Paris — Module de devis en ligne
 
-## Getting Started
+Prototype fullstack développé avec Next.js 16 et Supabase dans le cadre d'un exercice technique.
 
-First, run the development server:
+## Stack technique
+
+- **Framework** : Next.js 16 (App Router, Turbopack)
+- **Base de données** : Supabase (PostgreSQL)
+- **Styling** : Tailwind CSS
+- **Validation** : Zod
+- **Auth** : JWT (jsonwebtoken)
+- **Langage** : TypeScript
+
+## Lancement en local
+
+### 1. Cloner le projet
+
+```bash
+git clone https://github.com/TON_USERNAME/anti-nuisibles.git
+cd anti-nuisibles
+```
+
+### 2. Installer les dépendances
+
+```bash
+npm install
+```
+
+### 3. Configurer les variables d'environnement
+
+```bash
+cp .env.example .env.local
+```
+
+Remplir les valeurs dans `.env.local`.
+
+### 4. Initialiser la base de données
+
+Exécuter le script `scripts/init-db.sql` dans le SQL Editor de Supabase.
+
+### 5. Lancer le serveur
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+L'application est accessible sur http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Identifiants de test
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Accès | Valeur |
+|---|---|
+| URL back-office | /admin |
+| Mot de passe | admin123 |
 
-## Learn More
+## Structure du projet
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/
+│   ├── page.tsx              → Page d'accueil
+│   ├── devis/page.tsx        → Formulaire public multi-étapes
+│   ├── admin/page.tsx        → Back-office
+│   ├── admin/login/page.tsx  → Connexion admin
+│   └── api/
+│       ├── devis/            → POST (soumission devis)
+│       └── admin/devis/      → GET + PATCH (gestion admin)
+├── lib/
+│   ├── supabase.ts           → Clients Supabase
+│   ├── auth.ts               → JWT helpers
+│   └── services/
+│       └── devis.service.ts  → Logique métier
+└── types/index.ts            → Types TypeScript
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Fonctionnalités
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Formulaire public /devis
 
-## Deploy on Vercel
+- Formulaire multi-étapes (3 étapes)
+- Validation côté client et côté serveur (Zod)
+- Protection anti-spam : rate limiting par IP (max 3/heure)
+- Sanitisation des inputs (prévention XSS)
+- Feedback visuel : loader, message de succès avec UUID
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### API sécurisée
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- POST /api/devis — soumission publique avec rate limiting
+- GET /api/admin/devis — liste protégée par Bearer token JWT
+- PATCH /api/admin/devis — mise à jour statut protégée
+
+### Back-office /admin
+
+- Authentification par mot de passe + JWT (session 8h)
+- Tableau paginé (10 résultats/page)
+- Filtre par statut (nouveau / traité / archivé)
+- Recherche par nom ou email (debounce 300ms)
+- Changement de statut en un clic
+- Export CSV des demandes filtrées
+
+## Choix techniques
+
+- **Service layer** : la logique métier est isolée dans devis.service.ts pour séparer les responsabilités
+- **ApiResponse uniforme** : toutes les routes retournent { success, data?, error? }
+- **Deux clients Supabase** : client public (anon key) pour le formulaire, client admin (secret key) pour les routes protégées
+- **JWT sans librairie edge** : jsonwebtoken étant incompatible avec le runtime proxy de Next.js 16, la vérification du cookie dans le proxy se limite à son existence — la vérification JWT complète se fait dans les API routes côté serveur
+
+## Variables d'environnement
+
+Voir .env.example pour la liste complète des variables requises.
