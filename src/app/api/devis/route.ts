@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { checkRateLimit, registerIp, createDevis } from '@/lib/services/devis.service'
+import {checkRateLimit, registerIp, createDevis} from '@/lib/services/devis.service'
 import { ApiResponse } from '@/types'
 
 const devisSchema = z.object({

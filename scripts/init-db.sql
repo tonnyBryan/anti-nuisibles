@@ -19,3 +19,6 @@ CREATE TABLE rate_limits (
                              ip TEXT NOT NULL,
                              created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.devis TO service_role;
+GRANT SELECT, INSERT, DELETE ON public.rate_limits TO service_role;

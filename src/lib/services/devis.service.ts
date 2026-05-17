@@ -66,3 +66,12 @@ export async function getDevis(statut?: Statut | null): Promise<Devis[]> {
 
     return data as Devis[]
 }
+
+export async function updateDevisStatut(id: string, statut: Statut): Promise<void> {
+    const { error } = await supabaseAdmin
+        .from('devis')
+        .update({ statut })
+        .eq('id', id)
+
+    if (error) throw error
+}
