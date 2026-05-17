@@ -110,6 +110,34 @@ export default function AdminPage() {
         }
     }
 
+    const handleExportCSV = () => {
+        const headers = ['Date', 'Établissement', 'Surface', 'Nuisibles', 'Urgence', 'Nom', 'Email', 'Téléphone', 'Statut']
+
+        const rows = filtered.map(d => [
+            formatDate(d.created_at),
+            d.etablissement,
+            `${d.surface} m²`,
+            Array.isArray(d.nuisibles) ? d.nuisibles.join(' | ') : d.nuisibles,
+            d.urgence,
+            d.nom,
+            d.email,
+            d.telephone ?? '',
+            STATUT_LABELS[d.statut],
+        ])
+
+        const csv = [headers, ...rows]
+            .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+            .join('\n')
+
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `devis-${new Date().toISOString().split('T')[0]}.csv`
+        link.click()
+        URL.revokeObjectURL(url)
+    }
+
     const handleLogout = () => {
         document.cookie = 'admin_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
         router.push('/admin/login')
@@ -203,6 +231,17 @@ export default function AdminPage() {
                             </button>
                         ))}
                     </div>
+
+                    <button
+                        onClick={handleExportCSV}
+                        disabled={filtered.length === 0}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-700 text-stone-400 hover:border-amber-500 hover:text-amber-400 transition-all disabled:opacity-30 text-sm"
+                    >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Export CSV
+                    </button>
                 </div>
 
                 {/* Table */}
